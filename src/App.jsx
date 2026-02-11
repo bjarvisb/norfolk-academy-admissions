@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Search, X, ChevronDown, ChevronUp, LayoutGrid, List, Trash2 } from 'lucide-react';
 
-// GOOGLE APPS SCRIPT WEB APP URL
-const SCRIPT_URL = 'https://script.google.com/a/macros/norfolkacademy.org/s/AKfycbzi3SOLX51KXq9IzT5XaFreXbJJmrgLztFmL1W0a2uss_gtcXeMjEDABX1LlHrN0fpk/exec';
+// GOOGLE APPS SCRIPT WEB APP URL - Proxied through Vercel API
+const SCRIPT_URL = '/api/sheet';
 
 const UVAColors = {
   blue: '#232D4B',
@@ -280,7 +280,7 @@ function App() {
         familyConnections: ''
       },
       {
-        id: 1,
+        id: 15,
         name: 'Emily Chen',
         grade: '9',
         parentNames: 'David and Michelle Chen',
@@ -875,7 +875,7 @@ function App() {
               </span>
               {(filterStatuses.length > 0 || filterGrades.length > 0) && (
                 <>
-                  <span className="text-xs" style={{ color: UVAColors.darkGray }}>â€¢</span>
+                  <span className="text-xs" style={{ color: UVAColors.darkGray }}>•</span>
                   <button
                     onClick={() => {
                       setFilterStatuses([]);
@@ -892,7 +892,7 @@ function App() {
               {/* Collapse All - appears on same row when needed */}
               {viewMode === 'table' && Object.values(expandedCards).some(val => val) && (
                 <>
-                  <span className="text-xs" style={{ color: UVAColors.darkGray }}>â€¢</span>
+                  <span className="text-xs" style={{ color: UVAColors.darkGray }}>•</span>
                   <button
                     onClick={collapseAll}
                     className="text-xs font-medium hover:underline"
@@ -998,15 +998,16 @@ function TableView({ students, onEdit, onDelete, expandedCards, onToggle }) {
                   {gradeLabels[student.grade]}
                 </div>
 
-                {/* Status Badges - After Identity, Stack Earlier */}
-                <div className="flex flex-wrap gap-1.5 mr-4" style={{ minWidth: '120px', maxWidth: '220px' }}>
+                {/* Status Badges - Stack One Per Line */}
+                <div className="flex flex-col gap-1 mr-3" style={{ minWidth: '120px' }}>
                   {student.statuses.map((status, idx) => (
                     <span 
                       key={idx}
-                      className="inline-block px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap"
+                      className="inline-block px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap text-center"
                       style={{ 
                         backgroundColor: getStatusColor(status) + '15',
-                        color: getStatusColor(status)
+                        color: getStatusColor(status),
+                        fontSize: '10px'
                       }}
                     >
                       {status}
@@ -1063,7 +1064,7 @@ function TableView({ students, onEdit, onDelete, expandedCards, onToggle }) {
                         {student.admissionsNotes.map((note, idx) => (
                           <div key={idx} className="bg-white p-3 rounded-lg shadow-sm" style={{ border: `1px solid ${UVAColors.mediumGray}` }}>
                             <div className="text-sm leading-relaxed" style={{ color: UVAColors.textGray }}>
-                              <span className="font-medium" style={{ color: UVAColors.darkGray }}>{formatDate(note.date)}</span> â€” {note.text}
+                              <span className="font-medium" style={{ color: UVAColors.darkGray }}>{formatDate(note.date)}</span> — {note.text}
                             </div>
                           </div>
                         ))}
@@ -1080,7 +1081,7 @@ function TableView({ students, onEdit, onDelete, expandedCards, onToggle }) {
                         {student.athleticsNotes.map((note, idx) => (
                           <div key={idx} className="bg-white p-3 rounded-lg shadow-sm" style={{ border: `1px solid ${UVAColors.mediumGray}` }}>
                             <div className="text-sm leading-relaxed" style={{ color: UVAColors.textGray }}>
-                              <span className="font-medium" style={{ color: UVAColors.darkGray }}>{formatDate(note.date)}</span> â€” {note.text}
+                              <span className="font-medium" style={{ color: UVAColors.darkGray }}>{formatDate(note.date)}</span> — {note.text}
                             </div>
                           </div>
                         ))}
@@ -1151,12 +1152,12 @@ function StudentCard({ student, onEdit, onDelete, expanded, onToggle, notesExpan
             title={expanded ? "Click to collapse" : "Click to expand"}
           >
             <h3 className="text-xl font-bold mb-2" style={{ color: UVAColors.blue }}>
-              {student.name} <span>â€¢ {gradeLabels[student.grade]}</span>
+              {student.name} <span>• {gradeLabels[student.grade]}</span>
             </h3>
             
             <div className="flex items-center gap-3 text-sm mb-2" style={{ color: UVAColors.darkGray }}>
               <span>{student.currentSchool}</span>
-              <span>â€¢</span>
+              <span>•</span>
               <span>{student.sports.join(', ')}</span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -1225,7 +1226,7 @@ function StudentCard({ student, onEdit, onDelete, expanded, onToggle, notesExpan
                 <div className="space-y-2">
                   {(notesExpanded ? student.admissionsNotes : student.admissionsNotes.slice(0, 1)).map((note, idx) => (
                     <div key={idx} className="text-sm leading-relaxed" style={{ color: UVAColors.textGray }}>
-                      <span className="font-medium" style={{ color: UVAColors.darkGray }}>{formatDate(note.date)}</span> â€” {note.text}
+                      <span className="font-medium" style={{ color: UVAColors.darkGray }}>{formatDate(note.date)}</span> — {note.text}
                     </div>
                   ))}
                 </div>
@@ -1253,7 +1254,7 @@ function StudentCard({ student, onEdit, onDelete, expanded, onToggle, notesExpan
                 <div className="space-y-2">
                   {(notesExpanded ? student.athleticsNotes : student.athleticsNotes.slice(0, 1)).map((note, idx) => (
                     <div key={idx} className="text-sm leading-relaxed" style={{ color: UVAColors.textGray }}>
-                      <span className="font-medium" style={{ color: UVAColors.darkGray }}>{formatDate(note.date)}</span> â€” {note.text}
+                      <span className="font-medium" style={{ color: UVAColors.darkGray }}>{formatDate(note.date)}</span> — {note.text}
                     </div>
                   ))}
                 </div>
@@ -1356,13 +1357,8 @@ function ListView({ students, onEdit, onDelete }) {
                       </div>
                       <div className="space-y-2">
                         {student.admissionsNotes.map((note, noteIdx) => (
-                          <div key={noteIdx}>
-                            <div className="text-xs font-medium mb-1" style={{ color: UVAColors.darkGray }}>
-                              {formatDate(note.date)}
-                            </div>
-                            <div className="text-sm leading-relaxed" style={{ color: UVAColors.textGray }}>
-                              {note.text}
-                            </div>
+                          <div key={noteIdx} className="text-sm leading-relaxed" style={{ color: UVAColors.textGray }}>
+                            <span className="font-medium" style={{ color: UVAColors.darkGray }}>{formatDate(note.date)}</span> — {note.text}
                           </div>
                         ))}
                       </div>
@@ -1374,13 +1370,8 @@ function ListView({ students, onEdit, onDelete }) {
                       </div>
                       <div className="space-y-2">
                         {student.athleticsNotes.map((note, noteIdx) => (
-                          <div key={noteIdx}>
-                            <div className="text-xs font-medium mb-1" style={{ color: UVAColors.darkGray }}>
-                              {formatDate(note.date)}
-                            </div>
-                            <div className="text-sm leading-relaxed" style={{ color: UVAColors.textGray }}>
-                              {note.text}
-                            </div>
+                          <div key={noteIdx} className="text-sm leading-relaxed" style={{ color: UVAColors.textGray }}>
+                            <span className="font-medium" style={{ color: UVAColors.darkGray }}>{formatDate(note.date)}</span> — {note.text}
                           </div>
                         ))}
                       </div>
