@@ -398,7 +398,8 @@ function App() {
     
     const matchesStatus = filterStatuses.length === 0 || 
       filterStatuses.some(status => student.statuses.includes(status));
-    const matchesGrade = filterGrades.length === 0 || filterGrades.includes(student.grade);
+   const matchesGrade = filterGrades.length === 0 || 
+  filterGrades.some(g => String(g) === String(student.grade));
     
     return matchesSearch && matchesStatus && matchesGrade;
   }).sort((a, b) => {
@@ -415,13 +416,13 @@ function App() {
     return lastNameA.localeCompare(lastNameB);
   });
 
-  const getGradeBreakdown = () => {
-    const breakdown = {};
-    gradeOptions.forEach(grade => {
-      breakdown[grade] = students.filter(s => s.grade === grade).length;
-    });
-    return breakdown;
-  };
+const getGradeBreakdown = () => {
+  const breakdown = {};
+  gradeOptions.forEach(grade => {
+    breakdown[grade] = students.filter(s => String(s.grade) === String(grade)).length;
+  });
+  return breakdown;
+};
 
   const handleAddStudent = async (student) => {
     console.log('Adding student:', student);
