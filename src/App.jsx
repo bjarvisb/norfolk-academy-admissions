@@ -956,8 +956,11 @@ const getGradeBreakdown = () => {
 }
 
 function TableView({ students, onEdit, onDelete, expandedCards, onToggle }) {
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+ const formatDate = (dateStr) => {
+    // Parse date as local date to avoid timezone shift
+    const [year, month, day] = dateStr.split('-');
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   return (
@@ -1136,8 +1139,11 @@ function TableView({ students, onEdit, onDelete, expandedCards, onToggle }) {
 }
 
 function StudentCard({ student, onEdit, onDelete, expanded, onToggle, notesExpanded, onToggleNotes }) {
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+ const formatDate = (dateStr) => {
+    // Parse date as local date to avoid timezone shift
+    const [year, month, day] = dateStr.split('-');
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   return (
@@ -1304,8 +1310,11 @@ function StudentCard({ student, onEdit, onDelete, expanded, onToggle, notesExpan
 }
 
 function ListView({ students, onEdit, onDelete }) {
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+const formatDate = (dateStr) => {
+    // Parse date as local date to avoid timezone shift
+    const [year, month, day] = dateStr.split('-');
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   return (
