@@ -1038,16 +1038,16 @@ function TableView({ students, onEdit, onDelete, expandedCards, onToggle }) {
                   >
                     Edit
                   </button>
-                  <button
-                    onClick={() => onDelete(student.id)}
-                    className="p-1.5 transition-all hover:opacity-60"
-                    style={{ 
-                      color: '#DC2626'
-                    }}
-                    title="Delete student"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+               <button
+  disabled
+  className="p-1.5 cursor-not-allowed"
+  style={{ 
+    color: '#CCCCCC'
+  }}
+  title="Delete disabled - contact admin to remove students"
+>
+  <Trash2 size={16} />
+</button>
                 </div>
               </div>
 
@@ -1177,7 +1177,7 @@ function StudentCard({ student, onEdit, onDelete, expanded, onToggle, notesExpan
             </div>
           </div>
 
-          <div className="flex gap-2 ml-4">
+      <div className="flex gap-2 ml-4">
             <button
               onClick={onEdit}
               className="px-3 py-1.5 text-sm font-medium rounded-lg transition-all hover:opacity-80"
@@ -1189,12 +1189,12 @@ function StudentCard({ student, onEdit, onDelete, expanded, onToggle, notesExpan
               Edit
             </button>
             <button
-              onClick={onDelete}
-              className="p-2 transition-all hover:opacity-60"
+              disabled
+              className="p-2 cursor-not-allowed"
               style={{ 
-                color: '#DC2626'
+                color: '#CCCCCC'
               }}
-              title="Delete student"
+              title="Delete disabled - contact admin to remove students"
             >
               <Trash2 size={16} />
             </button>
@@ -1326,7 +1326,7 @@ function ListView({ students, onEdit, onDelete }) {
             </tr>
           </thead>
           <tbody>
-            {students.map((student) => (
+        {students.map((student) => (
               <tr key={student.id} 
                   className="border-b hover:bg-gray-50 transition-colors"
                   style={{ 
@@ -1389,13 +1389,14 @@ function ListView({ students, onEdit, onDelete }) {
                       Edit
                     </button>
                     <button 
-                      onClick={() => onDelete(student.id)}
-                      className="p-2 transition-all hover:opacity-60 flex items-center justify-center"
-                      style={{ color: '#DC2626' }}
-                      title="Delete student"
+                      disabled
+                      className="p-2 cursor-not-allowed flex items-center justify-center"
+                      style={{ color: '#CCCCCC' }}
+                      title="Delete disabled - contact admin to remove students"
                     >
                       <Trash2 size={16} />
                     </button>
+                  
                   </div>
                 </td>
               </tr>
