@@ -400,7 +400,21 @@ setStudents(activeStudents);
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.parentNames.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.currentSchool.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.sports.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
+      student.sports.some(s => s.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      student.statuses.some(s => s.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      student.admissionsNotes.some(n => n.text.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      student.athleticsNotes.some(n => n.text.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      student.athleticsContact.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.familyConnections.toLowerCase().includes(searchQuery.toLowerCase());
+```
+
+Note the semicolon at the very end replacing the old one - that's the only structural change. Everything else is just additional `||` lines.
+
+---
+
+Make that change, commit with message:
+```
+Expand search to all fields
     
     const matchesStatus = filterStatuses.length === 0 || 
       filterStatuses.some(status => student.statuses.includes(status));
