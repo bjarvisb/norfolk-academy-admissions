@@ -87,7 +87,13 @@ function App() {
       const response = await fetch(`${SCRIPT_URL}?action=getData`);
       const data = await response.json();
       if (data.students && data.students.length > 0) {
-        setStudents(data.students);
+        const activeStudents = data.students.filter(student => {
+  if (student.hasOwnProperty('active')) {
+    return String(student.active).toUpperCase() === 'TRUE';
+  }
+  return student.name && student.name.trim() !== '';
+});
+setStudents(activeStudents);
       } else {
         setStudents(getSampleData());
       }
@@ -1004,7 +1010,7 @@ function TableView({ students, onEdit, onDelete, expandedCards, onToggle }) {
 
                 {/* Status Badges - Stack One Per Line */}
                 <div className="flex flex-col gap-1 mr-3" style={{ minWidth: '120px' }}>
-                  {student.statuses.map((status, idx) => (
+                  {[...student.statuses].sort((a, b) => statusOptions.indexOf(a) - statusOptions.indexOf(b)).map((status, idx) => (
                     <span 
                       key={idx}
                       className="inline-block px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap text-center"
@@ -1168,7 +1174,7 @@ function StudentCard({ student, onEdit, onDelete, expanded, onToggle, notesExpan
               <span>{student.sports.join(', ')}</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {student.statuses.map((status, idx) => (
+              {[...student.statuses].sort((a, b) => statusOptions.indexOf(a) - statusOptions.indexOf(b)).map((status, idx) => (
                 <span 
                   key={idx}
                   className="inline-block px-3 py-1 rounded-lg text-xs font-medium"
@@ -1418,6 +1424,7 @@ const formatDate = (dateStr) => {
 }
 
 function StudentModal({ student, onSave, onClose }) {
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState(student || {
     name: '',
     grade: '9',
@@ -1431,8 +1438,10 @@ function StudentModal({ student, onSave, onClose }) {
     familyConnections: ''
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (isSaving) return;
+  setIsSaving(true);
     
     console.log('Form submitted, original formData:', formData);
     
@@ -1458,10 +1467,11 @@ function StudentModal({ student, onSave, onClose }) {
     console.log('Cleaned data being saved:', cleanedData);
     
     try {
-      onSave(cleanedData);
+      await onSave(cleanedData);
     } catch (error) {
       console.error('Error in onSave:', error);
       alert('Error saving student: ' + error.message);
+      setIsSaving(false);
     }
   };
 
@@ -1786,13 +1796,18 @@ function StudentModal({ student, onSave, onClose }) {
               Cancel
             </button>
             <button
-              type="submit"
-              form="studentForm"
-              className="flex-1 px-4 py-2 rounded-lg font-semibold text-white text-sm transition-all hover:opacity-90"
-              style={{ backgroundColor: UVAColors.blue }}
-            >
-              {student ? 'Save Changes' : 'Add Student'}
-            </button>
+  type="submit"
+  form="studentForm"
+  disabled={isSaving}
+  className="flex-1 px-4 py-2 rounded-lg font-semibold text-white text-sm transition-all"
+  style={{
+    backgroundColor: isSaving ? '#9CA3AF' : UVAColors.blue,
+    cursor: isSaving ? 'not-allowed' : 'pointer',
+    opacity: isSaving ? 0.8 : 1
+  }}
+>
+  {isSaving ? 'Saving...' : student ? 'Save Changes' : 'Add Student'}
+</button>
           </div>
         </div>
       </div>
