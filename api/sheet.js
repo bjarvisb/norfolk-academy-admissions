@@ -1,14 +1,27 @@
 // /api/sheet.js - Vercel proxy to Apps Script with secret key
+import { verifyToken } from './auth.js';
+
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+// Verify token on every request
+  const authHeader = req.headers['authorization'] || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
+  if (!token) {
+    return res.status(401).json({ success: false, error: 'Unauthorized - no token' });
+  }
+
+  const payload = verifyToken(token, process.env.TOKEN_SIGNING_SECRET);
+  if (!payload) {
+    return res.status(401).json({ success: false, error: 'Unauthorized - invalid or expired token' });
+  }
   try {
     const SCRIPT_URL = process.env.APPS_SCRIPT_URL;
     const SECRET_KEY = process.env.APPS_SCRIPT_SECRET;
