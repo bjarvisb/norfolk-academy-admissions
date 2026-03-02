@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Search, X, ChevronDown, ChevronUp, LayoutGrid, List, Trash2 } from 'lucide-react';
+import { Plus, Search, X, ChevronDown, ChevronUp, LayoutGrid, List, Trash2, LogOut } from 'lucide-react';
 
 // GOOGLE APPS SCRIPT WEB APP URL - Proxied through Vercel API
 const SCRIPT_URL = '/api/sheet';
-
+const AUTH_URL = '/api/auth';
 const UVAColors = {
   blue: '#232D4B',
   blueLight: '#2d3a5c',
@@ -60,6 +60,123 @@ const sportsList = [
   'Tennis', 'Track & Field', 'Volleyball', 'Wrestling'
 ];
 
+// ============================================
+// LOGIN SCREEN COMPONENT
+// ============================================
+function LoginScreen({ onLogin }) {
+  const [passcode, setPasscode] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(AUTH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.token) {
+        localStorage.setItem('na_auth_token', data.token);
+        onLogin(data.token);
+      } else {
+        setError(data.error || 'Invalid passcode');
+      }
+    } catch (err) {
+      setError('Connection error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div 
+      className="min-h-screen flex items-center justify-center"
+      style={{ 
+        background: 'linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%)'
+      }}
+    >
+      <div className="w-full max-w-md">
+        <div 
+          className="bg-white rounded-xl shadow-lg p-8"
+          style={{ border: `1px solid ${UVAColors.mediumGray}` }}
+        >
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 
+              className="text-3xl font-bold mb-2"
+              style={{ color: UVAColors.blue }}
+            >
+              Norfolk Academy
+            </h1>
+            <p className="text-base mb-4" style={{ color: UVAColors.textGray }}>
+              Admissions & Athletics Coordination
+            </p>
+            <p className="text-sm" style={{ color: UVAColors.darkGray }}>
+              2026-27
+            </p>
+          </div>
+
+          {/* Login Form */}
+          <form onSubmit={handleSubmit}>
+            <div className="mb-6">
+              <label 
+                className="block text-sm font-semibold mb-2"
+                style={{ color: UVAColors.textGray }}
+              >
+                Enter Passcode
+              </label>
+              <input
+                type="password"
+                value={passcode}
+                onChange={(e) => setPasscode(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg text-base"
+                style={{ 
+                  border: `2px solid ${error ? '#DC2626' : UVAColors.mediumGray}`,
+                  outline: 'none'
+                }}
+                placeholder="••••••••"
+                autoFocus
+                disabled={isLoading}
+              />
+              {error && (
+                <p className="mt-2 text-sm" style={{ color: '#DC2626' }}>
+                  {error}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || !passcode}
+              className="w-full py-3 rounded-lg font-semibold text-white text-base transition-all"
+              style={{ 
+                backgroundColor: UVAColors.blue,
+                opacity: (isLoading || !passcode) ? 0.5 : 1,
+                cursor: (isLoading || !passcode) ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {isLoading ? 'Verifying...' : 'Access System'}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-xs" style={{ color: UVAColors.darkGray }}>
+              Protected by server-side authentication
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,15 +193,60 @@ function App() {
   
   const statusDropdownRef = useRef(null);
   const gradeDropdownRef = useRef(null);
-
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authToken, setAuthToken] = useState(null);
+  // Check for existing token on mount
   useEffect(() => {
-    loadStudents();
+    const token = localStorage.getItem('na_auth_token');
+    if (token) {
+      setAuthToken(token);
+      setIsAuthenticated(true);
+    } else {
+      setLoading(false);
+    }
   }, []);
 
+  // Load students once authenticated
+  useEffect(() => {
+    if (isAuthenticated && authToken) {
+      loadStudents();
+    }
+  }, [isAuthenticated, authToken]);
+  // Authentication handlers
+  const handleLogin = (token) => {
+    setAuthToken(token);
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('na_auth_token');
+    setAuthToken(null);
+    setIsAuthenticated(false);
+    setStudents([]);
+  };
+
+  // API helper - adds auth header to all requests
+  const authenticatedFetch = async (url, options = {}) => {
+    const headers = {
+      ...options.headers,
+      'Authorization': `Bearer ${authToken}`
+    };
+
+    const response = await fetch(url, { ...options, headers });
+
+    // Auto-logout on 401 (invalid/expired token)
+    if (response.status === 401) {
+      handleLogout();
+      throw new Error('Session expired. Please log in again.');
+    }
+
+    return response;
+  };
   const loadStudents = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${SCRIPT_URL}?action=getData`);
+      const response = await authenticatedFetch(`${SCRIPT_URL}?action=getData`);
       const data = await response.json();
       if (data.students && data.students.length > 0) {
         const activeStudents = data.students.filter(student => {
@@ -438,7 +600,7 @@ const getGradeBreakdown = () => {
   const handleAddStudent = async (student) => {
     console.log('Adding student:', student);
     try {
-      const response = await fetch(SCRIPT_URL, {
+      const response = await authenticatedFetch(SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'addStudent', ...student })
@@ -460,7 +622,7 @@ const getGradeBreakdown = () => {
   const handleUpdateStudent = async (updatedStudent) => {
     console.log('Updating student:', updatedStudent);
     try {
-      const response = await fetch(SCRIPT_URL, {
+      const response = await authenticatedFetch(SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'updateStudent', ...updatedStudent })
@@ -482,7 +644,7 @@ const getGradeBreakdown = () => {
   const handleDeleteStudent = async (id) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
       try {
-        const response = await fetch(`${SCRIPT_URL}?action=deleteStudent&id=${id}`, {
+        const response = await authenticatedFetch(`${SCRIPT_URL}?action=deleteStudent&id=${id}`, {
           method: 'POST'
         });
         const result = await response.json();
@@ -563,6 +725,12 @@ const getGradeBreakdown = () => {
 
   const gradeBreakdown = getGradeBreakdown();
 
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
+  // Show loading screen if authenticated but loading data
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ 
@@ -748,6 +916,18 @@ const getGradeBreakdown = () => {
                 style={{ backgroundColor: UVAColors.orange }}
               >
                 Add Student
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-3 py-2 text-xs font-medium rounded-lg transition-all hover:opacity-90 flex items-center gap-1.5"
+                style={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  border: '1px solid rgba(255, 255, 255, 0.3)'
+                }}
+              >
+                <LogOut size={14} />
+                Logout
               </button>
             </div>
           </div>
