@@ -741,7 +741,7 @@ const getGradeBreakdown = () => {
             Loading Norfolk Academy Admissions...
           </div>
           <div className="text-sm" style={{ color: UVAColors.darkGray }}>
-            Connecting to Google Sheets
+            Connecting to Student Data...
           </div>
         </div>
       </div>
