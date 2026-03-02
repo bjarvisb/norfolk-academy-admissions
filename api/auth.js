@@ -31,4 +31,25 @@ export function verifyToken(token, secret) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !=
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { passcode } = req.body || {};
+  if (!passcode || passcode !== process.env.COACH_PASSCODE) {
+    return res.status(401).json({ error: 'Invalid passcode' });
+  }
+
+  const secret = process.env.TOKEN_SIGNING_SECRET;
+  if (!secret) {
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
+  const payload = {
+    exp: Date.now() + TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+    iat: Date.now()
+  };
+
+  const token = signToken(payload, secret);
+  return res.status(200).json({ token });
+}
